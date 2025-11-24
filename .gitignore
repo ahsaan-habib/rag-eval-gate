@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+*.egg-info/
+data/
+.chroma/
+results*.json
+runs/
