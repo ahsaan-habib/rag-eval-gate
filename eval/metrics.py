@@ -56,3 +56,16 @@ def context_precision(retrieved: list[tuple[str, str]], expected: list[str]) -> 
 
 def mean(xs: list[float]) -> float:
     return sum(xs) / len(xs) if xs else 0.0
+
+
+def refusal_correctness(rows: list[dict]) -> float:
+    """Of the unanswerable pairs, how many did the system decline?"""
+    neg = [r for r in rows if not r["answerable"]]
+    return mean([1.0 if r["refused"] else 0.0 for r in neg])
+
+
+def false_refusal_rate(rows: list[dict]) -> float:
+    """Of the answerable pairs, how many did it decline? Reported, not gated —
+    but a gate that only watches refusal_correctness rewards refusing everything."""
+    pos = [r for r in rows if r["answerable"]]
+    return mean([1.0 if r["refused"] else 0.0 for r in pos])
