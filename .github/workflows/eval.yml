@@ -1,0 +1,71 @@
+name: eval
+
+on:
+  pull_request:
+    paths: ['eval/**', 'golden/**', '.github/workflows/eval.yml']
+  workflow_dispatch:
+    inputs:
+      rag_ref:
+        description: rag-grounded ref to evaluate
+        default: main
+  # rag-grounded calls this on its own PRs, so prompt/code changes there are gated too
+  workflow_call:
+    inputs:
+      rag_ref:
+        type: string
+        default: main
+
+env:
+  DATASET: golden/v2.jsonl
+  RAG_LLM_MODEL: qwen3:4b
+  EVAL_JUDGE_MODEL: qwen3:4b
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ahsaan-habib/rag-eval-gate
+          path: eval-gate
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ahsaan-habib/rag-grounded
+          ref: ${{ inputs.rag_ref || 'main' }}
+          path: rag-grounded
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      # editable install so prompts/*.yaml from the checked-out ref are the ones used
+      - run: pip install -e ./rag-grounded -e ./eval-gate
+
+      - name: Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          (ollama serve > /tmp/ollama.log 2>&1 &)
+          sleep 5
+          ollama pull "$RAG_LLM_MODEL"
+
+      - name: Corpus + index
+        working-directory: rag-grounded
+        run: |
+          ./scripts/fetch_corpus.sh data/corpus
+          rag ingest data/corpus
+
+      - name: Run evaluation
+        working-directory: eval-gate
+        env:
+          RAG_INDEX_DIR: ${{ github.workspace }}/rag-grounded/.chroma
+        run: python -m eval.run --dataset "$DATASET" --out results.json --concurrency 2
+
+      - name: Gate on regression
+        working-directory: eval-gate
+        run: python -m eval.gate results.json
+
+      - uses: actions/upload-artifact@v4
+        with: { name: eval-results, path: eval-gate/results.json }
