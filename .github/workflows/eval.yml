@@ -65,7 +65,14 @@ jobs:
 
       - name: Gate on regression
         working-directory: eval-gate
-        run: python -m eval.gate results.json
+        # floors from 10 baseline runs, ~4 noise bands under the mean. A ratchet:
+        # raise when the system improves, never lower to get a PR through.
+        run: |
+          python -m eval.gate results.json \
+            --min-context-recall    0.80 \
+            --min-context-precision 0.75 \
+            --min-faithfulness      0.85 \
+            --min-refusal-correctness 0.85
 
       - uses: actions/upload-artifact@v4
         if: always()   # the failed run is the one you want the numbers from

@@ -15,7 +15,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("results")
     for m in GATED:
-        ap.add_argument(f"--min-{m.replace('_', '-')}", type=float, default=0.90, dest=m)
+        ap.add_argument(f"--min-{m.replace('_', '-')}", type=float, required=True, dest=m)
     args = ap.parse_args()
 
     res = json.load(open(args.results))
