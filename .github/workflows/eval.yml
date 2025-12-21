@@ -16,7 +16,7 @@ on:
         default: main
 
 env:
-  DATASET: golden/v2.jsonl
+  DATASET: golden/v3.jsonl
   RAG_LLM_MODEL: qwen3:4b
   EVAL_JUDGE_MODEL: qwen3:4b
 
