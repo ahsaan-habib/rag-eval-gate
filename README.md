@@ -55,9 +55,8 @@ retrieved text. If the docs are wrong, a perfectly faithful answer is wrong too.
 ```bash
 pip install -e ../rag-grounded -e .     # editable, so prompts/*.yaml resolve
 python -m eval.run --dataset golden/v3.jsonl --out results.json
-python -m eval.gate results.json \
-  --min-context-recall 0.80 --min-context-precision 0.75 \
-  --min-faithfulness 0.85 --min-refusal-correctness 0.85
+python -m eval.gate results.json            # floors from thresholds.yaml
+python -m eval.compare baseline.json results.json   # which pairs moved
 ```
 
 Runs fully local: the pipeline uses `qwen3:4b` through Ollama and so does the
@@ -75,7 +74,8 @@ python -m eval.noise --dataset golden/v3.jsonl --runs 10
 runs the unchanged system ten times and prints mean, stdev and a suggested
 floor (mean − 4σ). A floor inside the noise band fails on weather; a floor far
 below it never fires. Treat it as a ratchet: raise it when the system improves,
-never lower it to get a PR through.
+never lower it to get a PR through. Floors live in `thresholds.yaml` and CI runs
+`eval.ratchet` on PRs, which fails if any floor goes down.
 
 ## CI
 

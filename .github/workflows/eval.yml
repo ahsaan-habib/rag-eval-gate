@@ -2,7 +2,7 @@ name: eval
 
 on:
   pull_request:
-    paths: ['eval/**', 'golden/**', '.github/workflows/eval.yml']
+    paths: ['eval/**', 'golden/**', 'thresholds.yaml', '.github/workflows/eval.yml']
   workflow_dispatch:
     inputs:
       rag_ref:
@@ -29,12 +29,21 @@ jobs:
         with:
           repository: ahsaan-habib/rag-eval-gate
           path: eval-gate
+          fetch-depth: 0
 
       - uses: actions/checkout@v4
         with:
           repository: ahsaan-habib/rag-grounded
           ref: ${{ inputs.rag_ref || 'main' }}
           path: rag-grounded
+
+      - name: Thresholds only go up
+        if: github.event_name == 'pull_request'
+        working-directory: eval-gate
+        run: |
+          git fetch -q origin "${{ github.base_ref }}"
+          git show "origin/${{ github.base_ref }}:thresholds.yaml" > /tmp/base-thresholds.yaml
+          pip install -q pyyaml && python -m eval.ratchet /tmp/base-thresholds.yaml thresholds.yaml
 
       - uses: actions/setup-python@v5
         with:
@@ -65,14 +74,7 @@ jobs:
 
       - name: Gate on regression
         working-directory: eval-gate
-        # floors from 10 baseline runs, ~4 noise bands under the mean. A ratchet:
-        # raise when the system improves, never lower to get a PR through.
-        run: |
-          python -m eval.gate results.json \
-            --min-context-recall    0.80 \
-            --min-context-precision 0.75 \
-            --min-faithfulness      0.85 \
-            --min-refusal-correctness 0.85
+        run: python -m eval.gate results.json --thresholds thresholds.yaml
 
       - uses: actions/upload-artifact@v4
         if: always()   # the failed run is the one you want the numbers from

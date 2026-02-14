@@ -1,0 +1,6 @@
+# Gate floors. Set from `python -m eval.noise --runs 10` on golden/v3.
+# This file is a ratchet: values may go up, never down (checked in CI).
+context_recall: 0.80
+context_precision: 0.75
+faithfulness: 0.85
+refusal_correctness: 0.85

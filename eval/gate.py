@@ -1,4 +1,4 @@
-"""python -m eval.gate results.json --min-faithfulness 0.85 ...
+"""python -m eval.gate results.json [--thresholds thresholds.yaml] [--min-faithfulness 0.85 ...]
 
 Exits non-zero on any breach -> the build fails -> the change does not merge.
 """
@@ -8,15 +8,23 @@ import argparse
 import json
 import sys
 
+import yaml
+
 GATED = ["context_recall", "context_precision", "faithfulness", "refusal_correctness"]
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("results")
+    ap.add_argument("--thresholds", default="thresholds.yaml")
     for m in GATED:
-        ap.add_argument(f"--min-{m.replace('_', '-')}", type=float, required=True, dest=m)
+        # explicit flags override the file
+        ap.add_argument(f"--min-{m.replace('_', '-')}", type=float, default=None, dest=m)
     args = ap.parse_args()
+    floors = yaml.safe_load(open(args.thresholds))
+    for m in GATED:
+        if getattr(args, m) is None:
+            setattr(args, m, float(floors[m]))
 
     res = json.load(open(args.results))
     got = res["metrics"]
