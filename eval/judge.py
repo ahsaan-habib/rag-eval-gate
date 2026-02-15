@@ -16,7 +16,7 @@ from pydantic import BaseModel, ValidationError
 from rag_grounded.answer.claims import split_claims, strip_citations
 from rag_grounded.llm.ollama import Ollama
 
-JUDGE_MODEL = os.environ.get("EVAL_JUDGE_MODEL", "qwen3:4b")
+JUDGE_MODEL = os.environ.get("EVAL_JUDGE_MODEL", "qwen3:4b-instruct")
 
 SYSTEM = """You check whether statements are supported by context passages.
 A statement is supported only if the passages state it or directly imply it.

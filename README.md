@@ -59,7 +59,7 @@ python -m eval.gate results.json            # floors from thresholds.yaml
 python -m eval.compare baseline.json results.json   # which pairs moved
 ```
 
-Runs fully local: the pipeline uses `qwen3:4b` through Ollama and so does the
+Runs fully local: the pipeline uses `qwen3:4b-instruct` through Ollama and so does the
 judge (`EVAL_JUDGE_MODEL` to change it — a different model family from the
 generator is better if you can spare the memory).
 

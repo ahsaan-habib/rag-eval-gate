@@ -17,8 +17,8 @@ on:
 
 env:
   DATASET: golden/v3.jsonl
-  RAG_LLM_MODEL: qwen3:4b
-  EVAL_JUDGE_MODEL: qwen3:4b
+  RAG_LLM_MODEL: qwen3:4b-instruct
+  EVAL_JUDGE_MODEL: qwen3:4b-instruct
 
 jobs:
   eval:
