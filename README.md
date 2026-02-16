@@ -53,7 +53,8 @@ retrieved text. If the docs are wrong, a perfectly faithful answer is wrong too.
 ## Usage
 
 ```bash
-pip install -e ../rag-grounded -e .     # editable, so prompts/*.yaml resolve
+pip install -e ../rag-grounded          # editable: edits there are what gets evaluated
+pip install --no-deps -e .              # --no-deps: pip refuses a local rag-grounded next to the git URL
 python -m eval.run --dataset golden/v3.jsonl --out results.json
 python -m eval.gate results.json            # floors from thresholds.yaml
 python -m eval.compare baseline.json results.json   # which pairs moved

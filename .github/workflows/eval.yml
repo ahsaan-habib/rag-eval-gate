@@ -37,6 +37,12 @@ jobs:
           ref: ${{ inputs.rag_ref || 'main' }}
           path: rag-grounded
 
+      # before anything pip-installs: the runner's system Python refuses it (PEP 668)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
       - name: Thresholds only go up
         if: github.event_name == 'pull_request'
         working-directory: eval-gate
@@ -45,13 +51,12 @@ jobs:
           git show "origin/${{ github.base_ref }}:thresholds.yaml" > /tmp/base-thresholds.yaml
           pip install -q pyyaml && python -m eval.ratchet /tmp/base-thresholds.yaml thresholds.yaml
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: pip
-
-      # editable install so prompts/*.yaml from the checked-out ref are the ones used
-      - run: pip install -e ./rag-grounded -e ./eval-gate
+      # rag-grounded from the checked-out ref, so its prompts and code are what
+      # gets evaluated. eval-gate goes in with --no-deps: its own requirement is
+      # rag-grounded's git URL, and pip refuses both in one environment.
+      - run: |
+          pip install -e ./rag-grounded
+          pip install --no-deps -e ./eval-gate
 
       - name: Ollama
         run: |
