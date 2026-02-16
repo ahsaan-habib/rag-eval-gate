@@ -7,3 +7,4 @@ data/
 .chroma/
 results*.json
 runs/
+.pytest_cache/
